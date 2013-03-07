@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Collections.ObjectModel;
+using System.Text;
 
 namespace Blackjack
 {   
@@ -11,19 +9,21 @@ namespace Blackjack
         In,
         Standing,
         Bust,
-        OutOfChips
+        OutOfChips,
+        BlackJack // Occurs when player gets 21
     }      
 
     class Player {
-        // To disable Split() when it's the player's second turn onwards (Split can only be done on turn one)
-        public int Turn { get; set; }
         public ObservableCollection<Card> Hand { get; private set; }
         public PlayerState State { get; set; }
 
         public int Chips { get; private set; }
-        public int BetChips { get; private set; }
+        /// <summary>
+        /// How many chips the player is currently betting
+        /// </summary>
+        public int Bet { get; private set; }
 
-        public int Score 
+        public int Points 
         {
             get
             {
@@ -33,7 +33,7 @@ namespace Blackjack
                 {
                     string face = c.Face.ToString();
                     if (face == "Ace") { numberOfAces++; }
-                    points += c.faceValue[face];
+                    points += c.CardValue[face];
                 }
                 // To ensure the player can be saved from going bust if aces can be worth 1 instead of 11
                 while ((points > 21) && (numberOfAces > 0) && (tempDeck.Count > 0))
@@ -55,7 +55,7 @@ namespace Blackjack
         {    
             // Chips = 0;
             Chips = 100;
-            BetChips = 0;
+            Bet = 0;
             Hand = new ObservableCollection<Card>();
             State = PlayerState.In;
         }
@@ -65,7 +65,7 @@ namespace Blackjack
         /// </summary>
         /// <param name="c">The number of chips to give to the player</param>
         /// <returns>The player's new number of chips</returns>
-        public int awardChips(int c) 
+        public int AwardChips(int c) 
         { 
             Chips += c;
             return Chips;
@@ -75,19 +75,19 @@ namespace Blackjack
         /// Award the player the number of chips they've previously bet
         /// </summary>
         /// <returns></returns>
-        public int awardChips()
+        public int AwardChips()
         {
-            Chips += BetChips;
-            return BetChips;
+            Chips += Bet;
+            return Bet;
         }
 
         /// <summary>
         /// Takes from the player the number of chips they've previously bet
         /// </summary>
         /// <returns>The player's new number of chips</returns>
-        public int takeChips() 
+        public int TakeChips() 
         {             
-            Chips -= BetChips;
+            Chips -= Bet;
 
             if (Chips <= 0) State = PlayerState.OutOfChips;
             return Chips;
@@ -98,24 +98,36 @@ namespace Blackjack
         /// </summary>
         /// <param name="c">The number of chips to take from the player</param>
         /// <returns>The player's new number of chips</returns>
-        public int takeChips(int c)
+        public int TakeChips(int c)
         {
             Chips -= c;
             return Chips;
         }
-        
-        public void betChips(int c) {  BetChips = c; }
+        /// <summary>
+        /// Bets chips
+        /// </summary>
+        /// <param name="c">The amount of chips to bet</param>
+        /// <returns>Returns false if the player doesn't have enough chips to bet, otherwise true</returns>
+        public bool BetChips(int c)
+        {
+            if (c <= Chips)
+            {
+                Bet = c;
+                return true;
+            }
+            else return false;
+        }
 
         /// <summary>
         /// Cancel the player's bet
         /// </summary>
-        public void cancelBet() { BetChips = 0; }
+        public void CancelBet() { Bet = 0; }
 
         /// <summary>
         /// Give a card to the player
         /// </summary>
         /// <param name="c">The card to give to the player</param>
-        public void giveCard(Card c)
+        public void GiveCard(Card c)
         {   
             // Can't remove a non-existant card
             if (!Hand.Contains(c)) Hand.Add(c);
@@ -125,7 +137,7 @@ namespace Blackjack
         /// Removes a card from the player's hand
         /// </summary>
         /// <param name="c">The card to remove</param>
-        public void takeCard(Card c)
+        public void TakeCard(Card c)
         {
             // Only give the player the card if they don't already have it
             if (Hand.Contains(c)) Hand.Remove(c);
@@ -136,11 +148,11 @@ namespace Blackjack
         /// </summary>
         /// <param name="s">Shoe (remove card from here)</param>
         /// <param name="d">Dealer (to call the dealer method)</param>
-        public PlayerState hit(Shoe s, Dealer d) 
+        public PlayerState Hit(Shoe s, Dealer d) 
         {
-            Hand.Add(s.drawCard());
-
-            if (Score > 21) State = PlayerState.Bust;
+            Hand.Add(s.DrawCard());
+            if (Points == 21) State = PlayerState.BlackJack;
+            else if (Points > 21) State = PlayerState.Bust;
 
             return State;
         }
@@ -148,7 +160,7 @@ namespace Blackjack
         /// <summary>
         /// Player will take no further action
         /// </summary>
-        public void stand() 
+        public void Stand() 
         {
             throw new NotImplementedException("Uncoded");
         }
@@ -156,16 +168,17 @@ namespace Blackjack
         /// <summary>
         /// 
         /// </summary>
-        public void Double()
+        public void Double(int newBet, Shoe s)
         {
-            throw new NotImplementedException("Uncoded");
+            GiveCard(s.DrawCard());
+            BetChips(Bet + newBet);
         }
 
         /// <summary>
         /// Split player's hand into two hands.
         /// Can only be performed on first turn.
         /// </summary>
-        public void split() 
+        public void Split() 
         {
             throw new NotImplementedException("Uncoded");
         }
@@ -188,7 +201,7 @@ namespace Blackjack
             // Output: "Player has a hand of: Nine of Diamonds, Four of Clubs, Jack of Clubs"
         }
 
-        internal void clearHand()
+        internal void ClearHand()
         {
             Hand.Clear();
         }

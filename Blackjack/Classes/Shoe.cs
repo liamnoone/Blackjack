@@ -1,15 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections.ObjectModel;
 
 namespace Blackjack
 {
     class Shoe
     {
-        // AKA the Deck
         List<Card> Contents { get; set; }
+
+        public Card this[int index]
+        {
+            get 
+            {
+                if (index <= Contents.Count) return Contents[index];
+                else throw new IndexOutOfRangeException("The Shoe doesn't contain that many cards");
+            }
+            set { 
+                Contents[index] = value; 
+            }
+        }
 
         /// <summary>
         /// Fill the shoe with a stock deck
@@ -17,14 +25,14 @@ namespace Blackjack
         public Shoe()
         {            
             Contents = new List<Card>();
-            reFill();
+            ReFill();
         }
 
         /// <summary>
         /// Get the top card from the deck
         /// </summary>
         /// <returns>Card object at first index of the deck</returns>
-        public Card drawCard()
+        public Card DrawCard()
         {
             if (Contents.Count != 0)
             {
@@ -40,7 +48,7 @@ namespace Blackjack
         /// positions of a new deck, and replace the current deck with it)
         /// </summary>
         /// Seems complete.
-        public void shuffle()
+        public void Shuffle()
         {
             Random rng = new Random(Environment.TickCount);
             List<Card> newDeck = new List<Card>();
@@ -57,13 +65,12 @@ namespace Blackjack
         /// <summary>
         /// Restores deck to default state
         /// </summary>
-        public void reFill()
+        public void ReFill()
         {
             Contents.Clear();
-            Card helperCard = new Card();
-            foreach (string suit in helperCard.suits)
+            foreach (string suit in Card.CardSuits)
             {
-                foreach (string face in helperCard.faces)
+                foreach (string face in Card.CardFaces)
                 {
                     Card c = new Card(suit, face);
                     Contents.Add(c);
@@ -71,7 +78,7 @@ namespace Blackjack
             }
         }
 
-        public void remove(Card c)
+        public void Remove(Card c)
         {
             if (Contents.Contains(c)) Contents.Remove(c);
             else { throw new NotImplementedException(); }
