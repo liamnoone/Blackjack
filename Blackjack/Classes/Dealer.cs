@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
 using System.Text;
-using System.Collections.ObjectModel;
 
 namespace Blackjack
 {
@@ -26,7 +23,7 @@ namespace Blackjack
                 {
                     string face = c.Face.ToString();
                     if (face == "Ace") { numberOfAces++; }
-                    points += c.faceValue[face];
+                    points += c.CardValue[face];
                 }
                 // To ensure the player can be saved from going bust if aces can be worth 1 instead of 11
                 while ((points > 21) && (numberOfAces > 0) && (tempDeck.Count > 0))
@@ -55,23 +52,25 @@ namespace Blackjack
         /// </summary>
         /// <param name="s">Shoe</param>
         /// <param name="p">Player</param>
-        public void deal(Shoe s, Player p) 
+        public void Deal(Shoe s, Player p) 
         { 
             // Deal to player, then dealer (hidden), then player, then dealer
-            p.giveCard(s.drawCard());
+            p.GiveCard(s.DrawCard());
 
-            Card c = s.drawCard();
+            Card c = s.DrawCard();
             c.Visible = Visibility.Hidden;
             Cards.Add(c);
 
-            p.giveCard(s.drawCard());
-            Cards.Add(s.drawCard());
+            p.GiveCard(s.DrawCard());
+            Cards.Add(s.DrawCard());
+
+            if (p.Points == 21) p.State = PlayerState.BlackJack;
         }
 
         /// <summary>
         /// Reveal dealer's hole (hidden) card to facilitate UI update
         /// </summary>
-        public void update()
+        public void RevealCard()
         {
             Cards[0].Visible = Visibility.Visible;
             Card c = Cards[0];
@@ -84,10 +83,10 @@ namespace Blackjack
         /// Dealer will stand on 17.
         /// </summary>
         /// <param name="s">The shoe object to draw a card from</param>
-        public DealerState playCard(Shoe s)
+        public DealerState PlayCard(Shoe s)
         {
             // Dealer stands on 17  
-            Cards.Add(s.drawCard());
+            Cards.Add(s.DrawCard());
             if (Points > 21) State = DealerState.Bust;
             else if (Points >= 17) State = DealerState.Standing;
             return State;
@@ -97,7 +96,7 @@ namespace Blackjack
         /// Occurs when the Dealer has same score as the Player
         /// The player doesn't win, but also doesn't lose chips
         /// <param name="p">Player</param>
-        public void push(Player p) { p.cancelBet(); }
+        public void Push(Player p) { p.CancelBet(); }
 
         public override string ToString()
         {
@@ -117,9 +116,10 @@ namespace Blackjack
             // Output: "Dealer has a hand of: Nine of Diamonds, Four of Clubs, Jack of Clubs
         }
 
-        internal void clearCards()
+        internal void ClearCards()
         {
             Cards.Clear();
+            
         }
-    } // EO Dealer
+    } 
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 
 namespace Blackjack
 {
@@ -15,10 +15,11 @@ namespace Blackjack
 
     enum Faces
     {
-        Two = 2, Three = 3, Four = 4,
-        Five = 5, Six = 6, Seven = 7, Eight = 8,
-        Nine = 9, Ten = 10, Jack = 10, Queen = 10, King = 10,
-        Ace = 11
+        //Two = 2, Three = 3, Four = 4,
+        //Five = 5, Six = 6, Seven = 7, Eight = 8,
+        //Nine = 9, Ten = 10, Jack = 10, Queen = 10, King = 10,
+        //Ace = 11
+        Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace
     }
 
     enum Visibility
@@ -28,14 +29,15 @@ namespace Blackjack
     }
 
     class Card
-    {
+    {        
+        public static string[] CardSuits = new string[] { "Hearts", "Diamonds", "Spades", "Clubs" };
+        public static string[] CardFaces = new string[] { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "King", "Queen" };
         
-        public string[] suits = new string[] { "Hearts", "Diamonds", "Spades", "Clubs" };
-        public string[] faces = new string[] { "Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Jack", "King", "Queen" };
-
         // For deriving the actual value of a card.
         // Ace is 11 (or 1 when an ace will cause the player to go bust), Jack/Queen/King are 10, Four is 4, etc
-        public Dictionary<string, int> faceValue = new Dictionary<string, int>() {
+
+        public Dictionary<string, int> CardValue = new Dictionary<string, int>() 
+        {
             {"Two", 2}, {"Three", 3}, {"Four", 4}, {"Five", 5}, {"Six", 6}, 
             {"Seven", 7}, {"Eight", 8}, {"Nine", 9}, {"Ten", 10}, 
             {"Jack", 10}, {"Queen", 10}, {"King", 10}, {"Ace", 11}
@@ -44,6 +46,20 @@ namespace Blackjack
         public Visibility Visible { get; set; }
         public Suits Suit { get; set; }
         public Faces Face { get; set; }
+        public Image ImageLocation
+        {
+            get
+            {
+                Image src = new Image();
+                string URI;
+
+                if (Visible == Visibility.Hidden) URI = "/Images/Hidden.png";
+                else URI = String.Format("/Images/{0}/{1}.png", Suit.ToString(), Face.ToString());
+
+                src.Source = new BitmapImage(new Uri(URI, UriKind.RelativeOrAbsolute));
+                return src;
+            }
+        }
 
         /// <summary>
         /// Create random card object
@@ -52,8 +68,8 @@ namespace Blackjack
         {
             // Create a random card
             Random r = new Random(Environment.TickCount);
-            Suit = (Suits)Enum.Parse(typeof(Suits), suits[r.Next(suits.Length)]);
-            Face = (Faces)Enum.Parse(typeof(Faces), faces[r.Next(suits.Length)]);
+            Suit = (Suits)Enum.Parse(typeof(Suits), CardSuits[r.Next(CardSuits.Length)]);
+            Face = (Faces)Enum.Parse(typeof(Faces), CardFaces[r.Next(CardSuits.Length)]);
             Visible = Visibility.Visible;
         }
 
@@ -65,6 +81,13 @@ namespace Blackjack
         public Card(string s, string f)
         {
             Suit = (Suits)Enum.Parse(typeof(Suits), s);
+
+            // Prevent ambiguity between 10value cards
+            //if (f == "Ten") Face = Faces.Ten;
+            //else if (f == "Jack") Face = Faces.Jack;
+            //else if (f == "Queen") Face = Faces.Queen;
+            //else if (f == "King") Face = Faces.King;
+            //else Face = (Faces)Enum.Parse(typeof(Faces), f);
             Face = (Faces)Enum.Parse(typeof(Faces), f);
             Visible = Visibility.Visible;
         }
