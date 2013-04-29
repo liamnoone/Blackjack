@@ -367,6 +367,7 @@ namespace Blackjack
                             _player.Points, _dealer.Points, _player.Bet), "Player wins!");
 
                         _dealerLogic.Stop();
+                        MnuSubmit.IsEnabled = true;
                         MnuNextRound.IsEnabled = true;
                     }
                     else if ((_dealer.Points > _player.Points))
@@ -377,6 +378,7 @@ namespace Blackjack
                             _dealer.Points, _player.Points, _player.Bet), "Dealer wins");
 
                         _dealerLogic.Stop();
+                        MnuSubmit.IsEnabled = true;
                         MnuNextRound.IsEnabled = true;
                         btnDouble.IsEnabled = false;
 
@@ -390,6 +392,7 @@ namespace Blackjack
                         MessageBox.Show(String.Format("Dealer & Player had {0} points each. €0 lost.", _dealer.Points), "A push occurred");
                         _dealerLogic.Stop();
                         MnuNextRound.IsEnabled = true;
+                        MnuSubmit.IsEnabled = true;
                     }
                 }
                 else
