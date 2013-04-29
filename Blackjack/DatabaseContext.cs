@@ -22,7 +22,7 @@ namespace Blackjack
 	using System;
 	
 	
-	[global::System.Data.Linq.Mapping.DatabaseAttribute(Name="C:\\Users\\Liam\\AppData\\Local\\Temp\\Database.sdf")]
+	[global::System.Data.Linq.Mapping.DatabaseAttribute(Name="Database.sdf")]
 	public partial class DatabaseContext : System.Data.Linq.DataContext
 	{
 		
@@ -30,9 +30,9 @@ namespace Blackjack
 		
     #region Extensibility Method Definitions
     partial void OnCreated();
-    partial void InsertLeaderboard(Leaderboard instance);
-    partial void UpdateLeaderboard(Leaderboard instance);
-    partial void DeleteLeaderboard(Leaderboard instance);
+    partial void InsertScores(Scores instance);
+    partial void UpdateScores(Scores instance);
+    partial void DeleteScores(Scores instance);
     #endregion
 		
 		public DatabaseContext(string connection) : 
@@ -59,17 +59,17 @@ namespace Blackjack
 			OnCreated();
 		}
 		
-		public System.Data.Linq.Table<Leaderboard> Leaderboard
+		public System.Data.Linq.Table<Scores> Scores
 		{
 			get
 			{
-				return this.GetTable<Leaderboard>();
+				return this.GetTable<Scores>();
 			}
 		}
 	}
 	
 	[global::System.Data.Linq.Mapping.TableAttribute()]
-	public partial class Leaderboard : INotifyPropertyChanging, INotifyPropertyChanged
+	public partial class Scores : INotifyPropertyChanging, INotifyPropertyChanged
 	{
 		
 		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
@@ -92,7 +92,7 @@ namespace Blackjack
     partial void OnPlayer_NameChanged();
     #endregion
 		
-		public Leaderboard()
+		public Scores()
 		{
 			OnCreated();
 		}
@@ -137,7 +137,7 @@ namespace Blackjack
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Player_Name", DbType="NVarChar(100) NOT NULL", CanBeNull=false)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Player_Name", DbType="NVarChar(50) NOT NULL", CanBeNull=false)]
 		public string Player_Name
 		{
 			get
