@@ -1,0 +1,22 @@
+﻿<Window x:Class="Blackjack.Double"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Double" Height="100" Width="300">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="43*"/>
+            <ColumnDefinition Width="30*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <DockPanel Grid.Row="0" VerticalAlignment="Center" Margin="5" Grid.ColumnSpan="2">
+            <TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=SldAmount, Path=Value}" VerticalAlignment="Center" Margin="10,0" />
+            <Slider Minimum="1" Name="SldAmount" SmallChange="1" LargeChange="10" Value="1" />
+        </DockPanel>
+        <Button Grid.Row="1" HorizontalAlignment="Right" 
+                IsDefault="True" MinWidth="70" Name="BtnSubmit"
+                Margin="10,7.5" Grid.Column="1">Double!</Button>
+    </Grid>
+</Window>

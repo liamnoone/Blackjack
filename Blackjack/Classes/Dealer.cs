@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Text;
 
-namespace Blackjack
+namespace Blackjack.Classes
 {
     enum DealerState
     {
@@ -9,41 +9,13 @@ namespace Blackjack
         Standing,
         Bust
     }
-    class Dealer {
-        public ObservableCollection<Card> Cards { get; set; }
+    class Dealer : P
+    {
         public DealerState State { get; set; }
-
-        public int Points
-        {
-            get
-            {
-                int points = 0, position = 0, numberOfAces = 0;
-                ObservableCollection<Card> tempDeck = Cards;
-                foreach (Card c in Cards) 
-                {
-                    string face = c.Face.ToString();
-                    if (face == "Ace") { numberOfAces++; }
-                    points += c.CardValue[face];
-                }
-                // To ensure the player can be saved from going bust if aces can be worth 1 instead of 11
-                while ((points > 21) && (numberOfAces > 0) && (tempDeck.Count > 0))
-                {
-                    Card card = tempDeck[position];
-                    //tempDeck.Remove(card);
-                    if (card.Face.ToString() == "Ace") 
-                    { 
-                        points -= 10; 
-                        numberOfAces--; 
-                    }
-                    position++;
-                }
-                return points;
-            }
-        }
 
         public Dealer()
         {
-            Cards = new ObservableCollection<Card>();
+            Hand = new ObservableCollection<Card>();
             State = DealerState.In;
         }
 
@@ -52,17 +24,17 @@ namespace Blackjack
         /// </summary>
         /// <param name="s">Shoe</param>
         /// <param name="p">Player</param>
-        public void Deal(Shoe s, Player p) 
-        { 
+        public void Deal(Shoe s, Player p)
+        {
             // Deal to player, then dealer (hidden), then player, then dealer
             p.GiveCard(s.DrawCard());
 
             Card c = s.DrawCard();
             c.Visible = Visibility.Hidden;
-            Cards.Add(c);
+            Hand.Add(c);
 
             p.GiveCard(s.DrawCard());
-            Cards.Add(s.DrawCard());
+            Hand.Add(s.DrawCard());
 
             if (p.Points == 21) p.State = PlayerState.BlackJack;
         }
@@ -72,10 +44,10 @@ namespace Blackjack
         /// </summary>
         public void RevealCard()
         {
-            Cards[0].Visible = Visibility.Visible;
-            Card c = Cards[0];
-            Cards.Remove(c);
-            Cards.Insert(0, c);
+            Hand[0].Visible = Visibility.Visible;
+            Card c = Hand[0];
+            Hand.Remove(c);
+            Hand.Insert(0, c);
         }
 
         /// <summary>
@@ -86,7 +58,7 @@ namespace Blackjack
         public DealerState PlayCard(Shoe s)
         {
             // Dealer stands on 17  
-            Cards.Add(s.DrawCard());
+            Hand.Add(s.DrawCard());
             if (Points > 21) State = DealerState.Bust;
             else if (Points >= 17) State = DealerState.Standing;
             return State;
@@ -96,30 +68,13 @@ namespace Blackjack
         /// Occurs when the Dealer has same score as the Player
         /// The player doesn't win, but also doesn't lose chips
         /// <param name="p">Player</param>
+        /// </summary>
         public void Push(Player p) { p.CancelBet(); }
-
-        public override string ToString()
-        {
-            StringBuilder output = new StringBuilder();
-            output.Append("Dealer has a hand of: ");
-            foreach (Card c in Cards)
-            {
-                if (c.Visible == Visibility.Visible) output.Append(c.ToString());
-                else output.Append("Card Hidden");
-
-                // Only append ", " for readability if it isn't the last card in the hand.
-                if (Cards.IndexOf(c) + 1 != Cards.Count) output.Append(", ");
-            }
-            if (output.ToString() == "Dealer has a hand of: ") return "The dealer's hand is empty";
-            else return output.ToString();
-
-            // Output: "Dealer has a hand of: Nine of Diamonds, Four of Clubs, Jack of Clubs
-        }
 
         internal void ClearCards()
         {
-            Cards.Clear();
-            
+            Hand.Clear();
+
         }
-    } 
+    }
 }

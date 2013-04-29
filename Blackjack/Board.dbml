@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="Assignments" Class="BoardDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=.\SQLEXPRESS;Initial Catalog=Assignments;Integrated Security=True" SettingsObjectName="Blackjack.Properties.Settings" SettingsPropertyName="AssignmentsConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.Leaderboard" Member="Leaderboards">
+    <Type Name="Leaderboard">
+      <Column Name="Player_ID" Type="System.Int16" DbType="SmallInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Player_Name" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="Player_Score" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+</Database>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Blackjack
+namespace Blackjack.Classes
 {
     class Shoe
     {
@@ -9,10 +9,10 @@ namespace Blackjack
 
         public Card this[int index]
         {
-            get 
+            get
             {
                 if (index <= Contents.Count) return Contents[index];
-                else throw new IndexOutOfRangeException("The Shoe doesn't contain that many cards");
+                throw new IndexOutOfRangeException("The Shoe doesn't contain that many cards");
             }
             set { 
                 Contents[index] = value; 
@@ -40,7 +40,7 @@ namespace Blackjack
                 Contents.Remove(c);
                 return c;
             }
-            else throw new Exception("No cards in Shoe!");
+            throw new Exception("No cards in Shoe!");
         }
 
         /// <summary>

@@ -3,26 +3,27 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Blackjack.Classes;
 
 namespace Blackjack
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
-        int sourceImageIndex;
-        Image sourceImage;
+        int _sourceImageIndex;
+        Image _sourceImage;
         /// <summary>
         /// How much a bet is worth
         /// </summary>
-        const int BET = 5;
-        DispatcherTimer DealerLogic;
+        const int Bet = 5;
+        DispatcherTimer _dealerLogic;
 
-        Random RNG;
-        Player player;
-        Shoe shoe;
-        Dealer dealer;
+        Random _rng;
+        Player _player;
+        Shoe _shoe;
+        Dealer _dealer;
 
         public MainWindow()
         {            
@@ -34,16 +35,16 @@ namespace Blackjack
         /// Deck is then shuffled: can't simply shuffle incase Deck contains under 52 cards
         /// This allows for a new game to be started
         /// </summary>
-        private void newGame()
+        private void NewGame()
         {
             cvsPlayer.Children.Clear();
             cvsDealer.Children.Clear();
 
-            dealer = new Dealer();
-            player = new Player();
-            shoe = new Shoe();
-            updateScores(100, 0);
-            shoe.Shuffle();
+            _dealer = new Dealer();
+            _player = new Player();
+            _shoe = new Shoe();
+            UpdateScores(100, 0);
+            _shoe.Shuffle();
 
             btnHit.IsEnabled = false;
             btnStand.IsEnabled = false;
@@ -53,80 +54,84 @@ namespace Blackjack
             btnBet.IsEnabled = true;
             btnStart.IsEnabled = false;
 
-            mnuNextRound.IsEnabled = false;
+            MnuNextRound.IsEnabled = false;
+            MnuSubmit.IsEnabled = false;
 
             Title = "Blackjack";
-            player.Hand.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(CollectionChanged);
-            dealer.Cards.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(CollectionChanged);
+            _player.Hand.CollectionChanged += CollectionChanged;
+            _dealer.Hand.CollectionChanged += CollectionChanged;
         }
 
         /// <summary>
         /// Setup game for another round (restart button states, but don't fully reset objects)
         /// </summary>
-        private void nextRound()
+        private void NextRound()
         {
-            player.ClearHand();
-            dealer.ClearCards();
+            _player.ClearHand();
+            _dealer.ClearCards();
 
-            shoe.ReFill();
-            shoe.Shuffle();
-            player.BetChips(0);
-            updateScores(player.Chips, 0);
-            DealerLogic.Stop();
+            _shoe.ReFill();
+            _shoe.Shuffle();
+            _player.BetChips(0);
+            UpdateScores(_player.Chips, 0);
+            _dealerLogic.Stop();
 
-            player.State = PlayerState.In;
-            dealer.State = DealerState.In;
+            _player.State = PlayerState.In;
+            _dealer.State = DealerState.In;
 
             btnBet.IsEnabled = true;
             btnHit.IsEnabled = false;  
             btnStand.IsEnabled = false;
 
-            mnuNextRound.IsEnabled = false;
+            MnuNextRound.IsEnabled = false;
+            MnuSubmit.IsEnabled = false;
         }  
 
-        private void addImage(Canvas cvs, Card c)
+        private void AddImage(Canvas cvs, Card c)
         {
             Image i = c.ImageLocation;
-            i.MouseEnter += new MouseEventHandler(Image_MouseEnter);
-            i.MouseLeave += new MouseEventHandler(Image_MouseLeave);
+            i.MouseEnter += Image_MouseEnter;
+            i.MouseLeave += Image_MouseLeave;
             int numChildren = cvs.Children.Count;
             cvs.Children.Add(i);
             Canvas.SetLeft(cvs.Children[numChildren], numChildren * 20);
         }
         
-        void blackJack() 
+        void BlackJack() 
         {
-            if ((player.Points == 21) && (player.Bet > 0))
+            if ((_player.Points == 21) && (_player.Bet > 0))
             {
-                player.AwardChips();
-                MessageBox.Show(String.Format("Blackjack! Player wins {0} chips.", player.Bet), "Blackjack!");
+                _player.AwardChips();
+                MessageBox.Show(String.Format("Blackjack! Player wins {0} chips.", _player.Bet), "Blackjack!");
 
                 btnHit.IsEnabled = false;
                 btnStand.IsEnabled = false;
                 btnDouble.IsEnabled = false;
-                mnuNextRound.IsEnabled = true;
-                player.BetChips(0);
+                MnuNextRound.IsEnabled = true;
+                MnuSubmit.IsEnabled = true;
+                _player.BetChips(0);
             }
         }
         
-        private void outOfChips()
+        private void OutOfChips()
         {
             MessageBox.Show("Player is out of chips.", "Out of Chips");
-            updateScores(player.Chips, 0);
-            this.Title = "Game Over: Out of Chips";
+            UpdateScores(_player.Chips, 0);
+            Title = "Game Over: Out of Chips";
 
             btnBet.IsEnabled = false;
             btnStand.IsEnabled = false;
             btnSplit.IsEnabled = false;
             btnDouble.IsEnabled = false;
-            mnuNextRound.IsEnabled = false;
+            MnuNextRound.IsEnabled = false;
+            MnuSubmit.IsEnabled = true;
         }
         /// <summary>
         /// Update the UI with player's new details
         /// </summary>
         /// <param name="chips">How many chips to display</param>
         /// <param name="bet">How many chips currently being bet to display</param>
-        private void updateScores(int chips, int bet)
+        private void UpdateScores(int chips, int bet)
         {
             tbkPlayerChips.Text = String.Format("Player's Chips: {0:C0}", chips);
             tbkPlayerBet.Text = String.Format("Player's Bet: {0:C0}", bet);
@@ -135,37 +140,42 @@ namespace Blackjack
 
         private void mnuNewGame_Click(object sender, RoutedEventArgs e)
         {
-            newGame();
+            NewGame();
         }
 
         private void mnuNextRound_Click(object sender, RoutedEventArgs e)
         {
-            nextRound();
+            NextRound();
         }
 
         private void mnuHelp_Click(object sender, RoutedEventArgs e)
         {
-            string o = "Closest player to 21 (BlackJack) wins.\n\nGeneral advice: Stand on 17 or higher, otherwise Hit.\nThe dealer will Stand on 17.";
+            const string o = "Closest player to 21 (BlackJack) wins.\n\nGeneral advice: Stand on 17 or higher, otherwise Hit.\nThe dealer will Stand on 17.";
             MessageBox.Show(o, "Help...");
         }
 
         private void mnuPoints_Click(object sender, RoutedEventArgs e)
         {
-            string o = @"
-            Two:    2 points
-            Three:  3 points
-            Four:   4 points
-            Five:   5 points
-            Six:    6 points
-            Seven:  7 points
-            Eight:  8 points
-            Nine:   9 points
-            Ten:    10 points
-            Jack:   10 points
-            Queen:  10 points
-            King:   10 points
-            Ace:    1 or 11 points";
+            const string o = "Two:    2 points\nThree:  3 points\nFour:   4" + 
+                             " points\nFive:   5 points\nSix:    " + 
+                             "6 points\nSeven:  7 points\nEight:  8 points\nNine:   9 points" + 
+                             "\nTen:    10 points\nJack:   10 points\nQueen:  10 points\n" + 
+                             "King:   10 points\nAce:    1 or 11 points";
             MessageBox.Show(o.Replace("            ", String.Empty), "Point values of cards");
+        }
+
+        private void MnuDisplay_OnClick(object sender, RoutedEventArgs e)
+        {
+            new HighScores().ShowDialog();
+        }
+
+        private void MnuSubmit_OnClick(object sender, RoutedEventArgs e)
+        {
+            MnuNextRound.IsEnabled = false;
+            MnuNewGame.IsEnabled = true;
+
+            var s = new Submit { Score = _player.Chips };
+            if (s.ShowDialog() == true) MnuSubmit.IsEnabled = false;
         }
 
         #endregion
@@ -174,24 +184,26 @@ namespace Blackjack
 
         private void btnHit_Click(object sender, RoutedEventArgs e)
         {
-            if (player.Bet == 0) MessageBox.Show("You didn't bet anything!");
+            if (_player.Bet == 0) MessageBox.Show("You didn't bet anything!");
             else
             {
                 btnBet.IsEnabled = false;
                 btnStand.IsEnabled = true;
                 btnSplit.IsEnabled = false;
-                player.Hit(shoe, dealer);
+                _player.Hit(_shoe, _dealer);
 
-                if (player.State == PlayerState.BlackJack) blackJack();
-                else if (player.State == PlayerState.Bust)
+                if (_player.State == PlayerState.BlackJack) BlackJack();
+                else if (_player.State == PlayerState.Bust)
                 {
-                    MessageBox.Show("You've gone bust! Your cards were " + player.Points + " points!", "Player Bust!");
-                    player.TakeChips();
+                    MessageBox.Show("You've gone bust! Your cards were " + _player.Points + " points!", "Player Bust!");
+                    _player.TakeChips();
                     btnHit.IsEnabled = false;
                     btnStand.IsEnabled = false;
-                    mnuNextRound.IsEnabled = true;
+                    btnDouble.IsEnabled = false;
+                    MnuNextRound.IsEnabled = true;
 
-                    if (player.State == PlayerState.OutOfChips) outOfChips();
+                    if (_player.State == PlayerState.OutOfChips) OutOfChips();
+                    MnuSubmit.IsEnabled = true;
                 }
             }
         }
@@ -201,12 +213,18 @@ namespace Blackjack
             btnBet.IsEnabled = false;
             btnStand.IsEnabled = false;
             btnHit.IsEnabled = false;
-            dealer.RevealCard();
-            DealerLogic.Start();
+            btnDouble.IsEnabled = false;
+
+            _dealer.RevealCard();
+            _dealerLogic.Start();
         }
 
         private void btnDouble_Click(object sender, RoutedEventArgs e)
         {
+            var dbl = new Double { SldAmount = { Maximum = (_player.Chips - _player.Bet) } };
+            if (dbl.ShowDialog() == true) _player.Double((int) dbl.SldAmount.Value, _shoe);
+            else return;
+
             btnHit.IsEnabled = false;
             btnStand.IsEnabled = false;
             //btnSplit.IsEnabled = false;
@@ -216,34 +234,39 @@ namespace Blackjack
              * How a double works
              * Player can bet UP TO their initial bet, for one final card
              */
-            // Just actually double player's bet for now (input for actual bet isn't created yet)
-            player.Double(player.Bet, shoe);
-            // Don't need to account for blackjack? (if they win, they win) 
-            // Can blackjack even occur with combos other than a 10card and an ace?
-            // if (player.Points == 21) blackJack();
-            if (player.Points > 21) 
+
+            _player.Double(_player.Bet, _shoe);
+
+            if (_player.Points > 21) 
             { 
-                player.TakeChips(); 
-                MessageBox.Show("Player went bust!"); 
+                _player.TakeChips(); 
+                MessageBox.Show("Player went bust!");
+                btnDouble.IsEnabled = false;
+                MnuSubmit.IsEnabled = true;
             }
 
             else
             {
-                dealer.RevealCard();
-                if ((dealer.Points > player.Points) && (dealer.State != DealerState.Bust))
+                _dealer.RevealCard();
+                if ((_dealer.Points > _player.Points) && (_dealer.State != DealerState.Bust))
                 {
                     MessageBox.Show("Dealer wins");
-                    player.TakeChips();
-                    if (player.State == PlayerState.OutOfChips) outOfChips();
+                    _player.TakeChips();
+                    if (_player.State == PlayerState.OutOfChips) OutOfChips();
+                    MnuSubmit.IsEnabled = true;
                 }
-                else { 
+                else
+                {
+                    MnuSubmit.IsEnabled = true;
                     MessageBox.Show("Player wins");
-                    player.AwardChips();
+                    _player.AwardChips();
+                    
                 }
             }                      
 
-            updateScores(player.Chips, 0); 
-            mnuNextRound.IsEnabled = true; 
+            UpdateScores(_player.Chips, 0); 
+            MnuNextRound.IsEnabled = true;
+            MnuSubmit.IsEnabled = true;
         }
 
         private void btnSplit_Click(object sender, RoutedEventArgs e)
@@ -253,29 +276,29 @@ namespace Blackjack
 
         private void btnBet_Click(object sender, RoutedEventArgs e)
         {
-            if (player.BetChips(player.Bet + BET))
+            if (_player.BetChips(_player.Bet + Bet))
             {
-                updateScores(player.Chips, player.Bet);
-                player.BetChips(player.Bet);
+                UpdateScores(_player.Chips, _player.Bet);
+                _player.BetChips(_player.Bet);
                 btnStart.IsEnabled = true;
-                
             }
             else MessageBox.Show("Not enough chips", "Error");
         }
 
         private void btnStart_Click(object sender, RoutedEventArgs e)
         {
-            if (player.Bet > 0)
+            if (_player.Bet > 0)
             {
-                dealer.Deal(shoe, player);
+                _dealer.Deal(_shoe, _player);
 
                 btnBet.IsEnabled = false;
                 btnHit.IsEnabled = true;
                 btnDouble.IsEnabled = true;
                 btnStart.IsEnabled = false;
                 btnStand.IsEnabled = true;
+                MnuSubmit.IsEnabled = false;
                 //Should it be handled in the dealer class or th interface logic?
-                if (player.State == PlayerState.BlackJack) blackJack(); 
+                if (_player.State == PlayerState.BlackJack) BlackJack(); 
                 
             }
             else MessageBox.Show("Error", "You haven't made a bet");
@@ -288,91 +311,91 @@ namespace Blackjack
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // Initalize the various classes on first run (to prevent ItemsSource from crashing due to NullReferenceException)
-            newGame();
+            NewGame();
 
             // Update the UI with images
-            player.Hand.CollectionChanged +=
-                new System.Collections.Specialized.NotifyCollectionChangedEventHandler(CollectionChanged);
-            dealer.Cards.CollectionChanged +=
-                new System.Collections.Specialized.NotifyCollectionChangedEventHandler(CollectionChanged);
+            _player.Hand.CollectionChanged += CollectionChanged;
+            _dealer.Hand.CollectionChanged += CollectionChanged;
 
-            DealerLogic = new DispatcherTimer();
-            RNG = new Random(Environment.TickCount);
+            _dealerLogic = new DispatcherTimer();
+            _rng = new Random(Environment.TickCount);
 
-            DealerLogic.Interval = new TimeSpan(0, 0, 0, 1);
-            DealerLogic.Tick += new EventHandler(DealerLogic_Tick);
+            _dealerLogic.Interval = new TimeSpan(0, 0, 0, 1);
+            _dealerLogic.Tick += DealerLogic_Tick;
         }
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            //Image scaling
+            //Image scaling: Doesn't Work.
             foreach (Image i in cvsDealer.Children) { i.Height = Height / 4.5; i.Width = Width / 7; }
             foreach (Image i in cvsPlayer.Children) { i.Height = Height / 4.5; i.Width = Width / 7; }
         }        
 
         private void Image_MouseEnter(object sender, MouseEventArgs e)
         {
-            if (sender is Image)
+            var image = sender as Image;
+            if (image != null)
             {
-                sourceImage = (Image)sender;
-                sourceImageIndex = Panel.GetZIndex(sourceImage);
-                Panel.SetZIndex(sourceImage, 300);
+                _sourceImage = image;
+                _sourceImageIndex = Panel.GetZIndex(_sourceImage);
+                Panel.SetZIndex(_sourceImage, 300);
             }
         }
 
         private void Image_MouseLeave(object sender, MouseEventArgs e)
         {
-            if (sourceImage != null)
+            if (_sourceImage != null)
             {
-                Panel.SetZIndex(sourceImage, sourceImageIndex);
-                sourceImage = null;
-                sourceImageIndex = 0;
+                Panel.SetZIndex(_sourceImage, _sourceImageIndex);
+                _sourceImage = null;
+                _sourceImageIndex = 0;
             }
         }
 
         void DealerLogic_Tick(object sender, EventArgs e)
         {
             // if dealer has same score as player, a "Push" happens: Player doesn't win but also doesn't lose any money
-            if (dealer.State != DealerState.Bust)
+            if (_dealer.State != DealerState.Bust)
             {
-                if (dealer.State == DealerState.Standing)
+                if (_dealer.State == DealerState.Standing)
                 {
-                    if ((player.Points > dealer.Points) && (player.State != PlayerState.Bust))
+                    if ((_player.Points > _dealer.Points) && (_player.State != PlayerState.Bust))
                     {
                         // Player win: Dealer standing, with player higher score than dealer and isn't bust or out of chips.
-                        player.AwardChips();
+                        _player.AwardChips();
                         MessageBox.Show(String.Format("Player: {0} points, Dealer: {1} points\n{2:C0} won.",
-                            player.Points, dealer.Points, player.Bet), "Player wins!");
+                            _player.Points, _dealer.Points, _player.Bet), "Player wins!");
 
-                        DealerLogic.Stop();
-                        mnuNextRound.IsEnabled = true;
+                        _dealerLogic.Stop();
+                        MnuNextRound.IsEnabled = true;
                     }
-                    else if ((dealer.Points > player.Points))
+                    else if ((_dealer.Points > _player.Points))
                     {
                         // Player loss
-                        player.TakeChips();
+                        _player.TakeChips();
                         MessageBox.Show(String.Format("Dealer had {0} points while player had {1} points.\nPlayer loses {2:C0}.",
-                            dealer.Points, player.Points, player.Bet), "Dealer wins");
+                            _dealer.Points, _player.Points, _player.Bet), "Dealer wins");
 
-                        DealerLogic.Stop();
-                        mnuNextRound.IsEnabled = true;
+                        _dealerLogic.Stop();
+                        MnuNextRound.IsEnabled = true;
+                        btnDouble.IsEnabled = false;
 
-                        if (player.State == PlayerState.OutOfChips) outOfChips();
+                        if (_player.State == PlayerState.OutOfChips) OutOfChips();
                     }
                     // Draw.
-                    else if (dealer.Points == player.Points)
+                    else if (_dealer.Points == _player.Points)
                     {
-                        dealer.Push(player);
+                        _dealer.Push(_player);
 
-                        MessageBox.Show(String.Format("Dealer & Player had {0} points each. €0 lost.", dealer.Points), "A push occurred");
-                        DealerLogic.Stop();
-                        mnuNextRound.IsEnabled = true;
+                        MessageBox.Show(String.Format("Dealer & Player had {0} points each. €0 lost.", _dealer.Points), "A push occurred");
+                        _dealerLogic.Stop();
+                        MnuNextRound.IsEnabled = true;
                     }
                 }
                 else
                 {
                     // Thus, dealer is still in (Under 17 score)
-                    dealer.PlayCard(shoe);
+                    _dealer.PlayCard(_shoe);
                 }
             }
             else
@@ -380,40 +403,41 @@ namespace Blackjack
                 // Dealer bust! If player isn't also bust, they win.
 
                 // Player hasn't bust; player wins.
-                if (player.Points <= 21)
+                if (_player.Points <= 21)
                 {
-                    player.AwardChips();
+                    _player.AwardChips();
                     MessageBox.Show(String.Format("Player awarded {0} chips.\nPlayer had {1} points, Dealer had {2} points",
-                        player.Bet, player.Points, dealer.Points), "Dealer bust!");
-                    mnuNextRound.IsEnabled = true;
+                        _player.Bet, _player.Points, _dealer.Points), "Dealer bust!");
+                    MnuNextRound.IsEnabled = true;
                 }
 
                 // Player has also bust.
                 else
                 {
-                    player.TakeChips();
+                    _player.TakeChips();
                     MessageBox.Show(String.Format("Dealer bust, but player also went bust. Player loses {0} chips.",
-                        player.Bet.ToString()), "Dealer & Player bust");
-                    mnuNextRound.IsEnabled = true;
+                        _player.Bet.ToString()), "Dealer & Player bust");
+                    MnuNextRound.IsEnabled = true;
 
-                    if (player.State == PlayerState.OutOfChips) outOfChips();
+                    if (_player.State == PlayerState.OutOfChips) OutOfChips();
                 }
-                DealerLogic.Stop();
+                _dealerLogic.Stop();
+                MnuSubmit.IsEnabled = true;
             }
         }
 
         // Update UI whenever dealer/player's hand changes
         void CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            if (cvsDealer.Children.Count != dealer.Cards.Count)
+            if (cvsDealer.Children.Count != _dealer.Hand.Count)
             {
                 cvsDealer.Children.Clear();
-                foreach (Card c in dealer.Cards) addImage(cvsDealer, c);
+                foreach (Card c in _dealer.Hand) AddImage(cvsDealer, c);
             }
-            if (cvsPlayer.Children.Count != player.Hand.Count)
+            if (cvsPlayer.Children.Count != _player.Hand.Count)
             {
                 cvsPlayer.Children.Clear();
-                foreach (Card c in player.Hand) addImage(cvsPlayer, c);
+                foreach (Card c in _player.Hand) AddImage(cvsPlayer, c);
             }
         }
         #endregion
